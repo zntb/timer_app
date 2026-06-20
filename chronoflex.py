@@ -14,6 +14,7 @@ Features
 
 import tkinter as tk
 from tkinter import messagebox
+from typing import Literal
 import logging
 import random
 import time
@@ -323,7 +324,7 @@ class ChronoFlex:
         chosen = random.randint(lo, hi)
         return chosen * 60, f"Random pick: {chosen} minute{'s' if chosen != 1 else ''} ({lo}–{hi})"
 
-    def _set_inputs_state(self, state: str) -> None:
+    def _set_inputs_state(self, state: Literal["normal", "disabled", "readonly"]) -> None:
         for entry in self.precise_entries.values():
             entry.configure(state=state)
         self.rand_min_entry.configure(state=state)
