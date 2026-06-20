@@ -65,7 +65,7 @@ class ChronoFlex:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("ChronoFlex — Timer for Windows")
-        self.root.geometry("640x820")  # Slightly taller to guarantee buttons fit
+        self.root.geometry("640x900")  # Tall enough to show the full ring
         self.root.resizable(False, False)
         self.root.configure(bg=self.BG)
 
@@ -168,7 +168,7 @@ class ChronoFlex:
         canvas_wrap = tk.Frame(display_card, bg=self.CARD)
         canvas_wrap.pack(side="top")
 
-        self.canvas_size = 320
+        self.canvas_size = 300
         self.canvas = tk.Canvas(canvas_wrap, width=self.canvas_size,
                                 height=self.canvas_size, bg=self.CARD,
                                 highlightthickness=0)
@@ -523,7 +523,7 @@ class ChronoFlex:
         self.canvas.delete("all")
         size = self.canvas_size
         center = size // 2
-        radius = size // 2 - 30
+        radius = size // 2 - 20
         ring_width = 14
 
         # Background ring
