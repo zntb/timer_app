@@ -14,10 +14,13 @@ Features
 
 import tkinter as tk
 from tkinter import messagebox
+import logging
 import random
 import time
 import threading
 import winsound
+
+logger = logging.getLogger(__name__)
 
 
 class ChronoFlex:
@@ -357,19 +360,23 @@ class ChronoFlex:
         self.timer_thread.start()
 
     def _run_countdown(self):
-        while self.running:
-            if self.paused:
+        try:
+            while self.running:
+                if self.paused:
+                    time.sleep(0.1)
+                    continue
+                now = time.time()
+                with self._lock:
+                    self.remaining_seconds = max(0, int(self.target_end_time - now + 0.999))
+                    remaining = self.remaining_seconds
+                self.root.after(0, self._draw_progress)
+                if remaining <= 0:
+                    self.root.after(0, self._on_complete)
+                    break
                 time.sleep(0.1)
-                continue
-            now = time.time()
-            with self._lock:
-                self.remaining_seconds = max(0, int(self.target_end_time - now + 0.999))
-                remaining = self.remaining_seconds
-            self.root.after(0, self._draw_progress)
-            if remaining <= 0:
-                self.root.after(0, self._on_complete)
-                break
-            time.sleep(0.1)
+        except Exception:
+            logger.exception("Timer thread crashed")
+            self.root.after(0, lambda: self.status_label.configure(text="Timer error"))
 
     def pause_timer(self):
         if not self.running or self.paused:
@@ -432,13 +439,17 @@ class ChronoFlex:
 
     def _play_alarm(self):
         # 3 short beeps, brief pause, repeat until dismissed
-        while self.alarm_playing:
-            for _ in range(3):
-                if not self.alarm_playing:
-                    break
-                winsound.Beep(880, 200)
-                time.sleep(0.05)
-            time.sleep(0.4)
+        try:
+            while self.alarm_playing:
+                for _ in range(3):
+                    if not self.alarm_playing:
+                        break
+                    winsound.Beep(880, 200)
+                    time.sleep(0.05)
+                time.sleep(0.4)
+        except Exception:
+            logger.exception("Alarm thread crashed")
+            self.root.after(0, lambda: self.status_label.configure(text="Alarm error"))
 
     def _flash_alarm(self):
         if not self.alarm_playing:
