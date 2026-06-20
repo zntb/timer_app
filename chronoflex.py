@@ -43,6 +43,7 @@ class ChronoFlex:
         self.root.configure(bg=self.BG)
 
         # ---- State ----
+        self._lock = threading.Lock()
         self.mode = tk.StringVar(value="precise")
         self.running = False
         self.paused = False
@@ -337,7 +338,8 @@ class ChronoFlex:
             self.target_end_time = time.time() + self.total_seconds
         else:
             # Resume from pause
-            self.target_end_time = time.time() + self.remaining_seconds
+            with self._lock:
+                self.target_end_time = time.time() + self.remaining_seconds
             self.status_label.configure(text="Resumed")
 
         self.running = True
@@ -360,9 +362,11 @@ class ChronoFlex:
                 time.sleep(0.1)
                 continue
             now = time.time()
-            self.remaining_seconds = max(0, int(self.target_end_time - now + 0.999))
+            with self._lock:
+                self.remaining_seconds = max(0, int(self.target_end_time - now + 0.999))
+                remaining = self.remaining_seconds
             self.root.after(0, self._draw_progress)
-            if self.remaining_seconds <= 0:
+            if remaining <= 0:
                 self.root.after(0, self._on_complete)
                 break
             time.sleep(0.1)
@@ -388,7 +392,8 @@ class ChronoFlex:
         self.running = False
         self.paused = False
         self.alarm_playing = False
-        self.remaining_seconds = 0
+        with self._lock:
+            self.remaining_seconds = 0
         self.total_seconds = 0
 
         self.start_btn.configure(state="normal")
@@ -405,7 +410,8 @@ class ChronoFlex:
     def _on_complete(self):
         self.running = False
         self.alarm_playing = True
-        self.remaining_seconds = 0
+        with self._lock:
+            self.remaining_seconds = 0
         self.status_label.configure(text="⏰ Time's up!")
 
         self.pause_btn.configure(state="disabled", text="⏸  Pause",
@@ -462,7 +468,10 @@ class ChronoFlex:
                                 center + radius, center + radius,
                                 outline=self.INPUT_BG, width=ring_width)
 
-        progress = (self.remaining_seconds / self.total_seconds
+        with self._lock:
+            remaining = self.remaining_seconds
+
+        progress = (remaining / self.total_seconds
                     if self.total_seconds > 0 else 0)
 
         # Adaptive color
@@ -470,9 +479,9 @@ class ChronoFlex:
             arc_color = self.DANGER if self.flash_state else self.WARNING
         elif not self.running:
             arc_color = self.MUTED
-        elif self.remaining_seconds < 60:
+        elif remaining < 60:
             arc_color = self.DANGER
-        elif self.remaining_seconds < 300:
+        elif remaining < 300:
             arc_color = self.WARNING
         else:
             arc_color = self.ACCENT
@@ -485,7 +494,7 @@ class ChronoFlex:
                                    outline=arc_color, width=ring_width)
 
         # Center text
-        time_str = self._format_time(self.remaining_seconds)
+        time_str = self._format_time(remaining)
         self.canvas.create_text(center, center - 12, text=time_str,
                                 font=("Segoe UI Semibold", 34), fill=self.TEXT)
 
