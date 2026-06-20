@@ -91,74 +91,73 @@ class ChronoFlex:
     # UI
     # =====================================================================
     def _build_ui(self):
-        # --- Header ---
+        self._build_header()
+        self._build_tabs()
+        self._build_config_card()
+        self._build_footer()
+        self._build_controls()
+        self._build_display_card()
+
+    def _build_header(self):
         header = tk.Frame(self.root, bg=self.BG)
         header.pack(fill="x", padx=30, pady=(24, 0))
-
         tk.Label(header, text="⏱  ChronoFlex",
                  font=("Segoe UI Semibold", 26),
                  bg=self.BG, fg=self.TEXT).pack(anchor="w")
         tk.Label(header, text="Precision and random-interval timer for Windows",
                  font=("Segoe UI", 10), bg=self.BG, fg=self.MUTED).pack(anchor="w")
 
-        # --- Mode tabs ---
+    def _build_tabs(self):
         tabs = tk.Frame(self.root, bg=self.BG)
         tabs.pack(fill="x", padx=30, pady=(20, 10))
-
         self.precise_btn = tk.Button(
             tabs, text="🎯  Precise", font=("Segoe UI Semibold", 11),
             bg=self.ACCENT, fg=self.BG, relief="flat", padx=20, pady=8,
             cursor="hand2", command=lambda: self._switch_mode("precise"))
         self.precise_btn.pack(side="left", padx=(0, 6))
-
         self.random_btn = tk.Button(
             tabs, text="🎲  Random", font=("Segoe UI Semibold", 11),
             bg=self.CARD, fg=self.TEXT, relief="flat", padx=20, pady=8,
             cursor="hand2", command=lambda: self._switch_mode("random"))
         self.random_btn.pack(side="left")
 
-        # --- Config card ---
+    def _build_config_card(self):
         config_card = tk.Frame(self.root, bg=self.CARD)
         config_card.pack(fill="x", padx=30, pady=6)
-
         self.precise_panel = tk.Frame(config_card, bg=self.CARD)
         self.random_panel  = tk.Frame(config_card, bg=self.CARD)
         self._build_precise_panel(self.precise_panel)
         self._build_random_panel(self.random_panel)
         self.precise_panel.pack(fill="x", padx=20, pady=20)
 
-        # --- Footer (Packed from bottom first so it never gets hidden) ---
+    def _build_footer(self):
         tk.Label(self.root,
                  text="Press Start to begin  •  Alarm will sound when finished",
                  font=("Segoe UI", 9), bg=self.BG, fg=self.SUBTLE
                  ).pack(side="bottom", pady=10)
 
-        # --- Controls ---
+    def _build_controls(self):
         controls = tk.Frame(self.root, bg=self.BG)
         controls.pack(side="bottom", pady=10)
-
         self.start_btn = tk.Button(
             controls, text="▶  Start", font=("Segoe UI Semibold", 12),
             bg=self.SUCCESS, fg=self.BG, relief="flat", padx=30, pady=12,
             cursor="hand2", command=self.start_timer)
         self.start_btn.pack(side="left", padx=6)
-
         self.pause_btn = tk.Button(
             controls, text="⏸  Pause", font=("Segoe UI Semibold", 12),
             bg=self.WARNING, fg=self.BG, relief="flat", padx=30, pady=12,
             cursor="hand2", state="disabled", command=self.pause_timer)
         self.pause_btn.pack(side="left", padx=6)
-
         self.reset_btn = tk.Button(
             controls, text="⏹  Reset", font=("Segoe UI Semibold", 12),
             bg=self.DANGER, fg=self.BG, relief="flat", padx=30, pady=12,
             cursor="hand2", state="disabled", command=self.reset_timer)
         self.reset_btn.pack(side="left", padx=6)
 
-        # --- Timer display card (Fills the remaining middle space) ---
+    def _build_display_card(self):
         display_card = tk.Frame(self.root, bg=self.CARD)
         display_card.pack(fill="both", expand=True, padx=30, pady=10)
-
         canvas_wrap = tk.Frame(display_card, bg=self.CARD)
         canvas_wrap.pack(pady=(20, 10))
         self.canvas_size = 320
@@ -166,7 +165,6 @@ class ChronoFlex:
                                 height=self.canvas_size, bg=self.CARD,
                                 highlightthickness=0)
         self.canvas.pack()
-
         self.status_label = tk.Label(display_card, text="Ready to start",
                                      font=("Segoe UI", 11), bg=self.CARD,
                                      fg=self.MUTED)
