@@ -42,6 +42,25 @@ class ChronoFlex:
     SUCCESS     = "#a6e3a1"
     WARNING     = "#f9e2af"
 
+    # ---- Timing / alarm constants ----
+    # Timer polling interval (seconds)
+    _TICK_INTERVAL: float = 0.1
+    # Rounding offset so "1 second remaining" displays for a full second
+    _ROUNDING_OFFSET: float = 0.999
+    # Milliseconds to keep window topmost after alarm fires
+    _TOPMOST_DURATION_MS: int = 2500
+    # Flash toggle interval (ms)
+    _FLASH_INTERVAL_MS: int = 400
+    # Alarm beep frequency (Hz) and duration (ms)
+    _BEEP_FREQUENCY: int = 880
+    _BEEP_DURATION_MS: int = 200
+    # Pause between individual beeps (seconds)
+    _BEEP_PAUSE: float = 0.05
+    # Pause between beep groups (seconds)
+    _BEEP_GROUP_PAUSE: float = 0.4
+    # Number of beeps per alarm group
+    _BEEPS_PER_GROUP: int = 3
+
     def __init__(self, root):
         self.root = root
         self.root.title("ChronoFlex — Timer for Windows")
@@ -376,17 +395,17 @@ class ChronoFlex:
         try:
             while self.running:
                 if self.paused:
-                    time.sleep(0.1)
+                    time.sleep(self._TICK_INTERVAL)
                     continue
                 now = time.time()
                 with self._lock:
-                    self.remaining_seconds = max(0, int(self.target_end_time - now + 0.999))
+                    self.remaining_seconds = max(0, int(self.target_end_time - now + self._ROUNDING_OFFSET))
                     remaining = self.remaining_seconds
                 self.root.after(0, self._draw_progress)
                 if remaining <= 0:
                     self.root.after(0, self._on_complete)
                     break
-                time.sleep(0.1)
+                time.sleep(self._TICK_INTERVAL)
         except Exception:
             logger.exception("Timer thread crashed")
             self.root.after(0, lambda: self.status_label.configure(text="Timer error"))
@@ -448,18 +467,18 @@ class ChronoFlex:
         # Bring window to front
         self.root.lift()
         self.root.attributes("-topmost", True)
-        self.root.after(2500, lambda: self.root.attributes("-topmost", False))
+        self.root.after(self._TOPMOST_DURATION_MS, lambda: self.root.attributes("-topmost", False))
 
     def _play_alarm(self):
-        # 3 short beeps, brief pause, repeat until dismissed
+        # Short beeps, brief pause, repeat until dismissed
         try:
             while self.alarm_playing:
-                for _ in range(3):
+                for _ in range(self._BEEPS_PER_GROUP):
                     if not self.alarm_playing:
                         break
-                    winsound.Beep(880, 200)
-                    time.sleep(0.05)
-                time.sleep(0.4)
+                    winsound.Beep(self._BEEP_FREQUENCY, self._BEEP_DURATION_MS)
+                    time.sleep(self._BEEP_PAUSE)
+                time.sleep(self._BEEP_GROUP_PAUSE)
         except Exception:
             logger.exception("Alarm thread crashed")
             self.root.after(0, lambda: self.status_label.configure(text="Alarm error"))
@@ -470,7 +489,7 @@ class ChronoFlex:
             return
         self.flash_state = not self.flash_state
         self._draw_progress()
-        self.root.after(400, self._flash_alarm)
+        self.root.after(self._FLASH_INTERVAL_MS, self._flash_alarm)
 
     def dismiss_alarm(self):
         self.alarm_playing = False
