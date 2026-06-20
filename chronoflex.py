@@ -61,7 +61,7 @@ class ChronoFlex:
     # Number of beeps per alarm group
     _BEEPS_PER_GROUP: int = 3
 
-    def __init__(self, root):
+    def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("ChronoFlex — Timer for Windows")
         self.root.geometry("640x820")  # Slightly taller to guarantee buttons fit
@@ -90,7 +90,7 @@ class ChronoFlex:
     # =====================================================================
     # UI
     # =====================================================================
-    def _build_ui(self):
+    def _build_ui(self) -> None:
         self._build_header()
         self._build_tabs()
         self._build_config_card()
@@ -98,7 +98,7 @@ class ChronoFlex:
         self._build_controls()
         self._build_display_card()
 
-    def _build_header(self):
+    def _build_header(self) -> None:
         header = tk.Frame(self.root, bg=self.BG)
         header.pack(fill="x", padx=30, pady=(24, 0))
         tk.Label(header, text="⏱  ChronoFlex",
@@ -107,7 +107,7 @@ class ChronoFlex:
         tk.Label(header, text="Precision and random-interval timer for Windows",
                  font=("Segoe UI", 10), bg=self.BG, fg=self.MUTED).pack(anchor="w")
 
-    def _build_tabs(self):
+    def _build_tabs(self) -> None:
         tabs = tk.Frame(self.root, bg=self.BG)
         tabs.pack(fill="x", padx=30, pady=(20, 10))
         self.precise_btn = tk.Button(
@@ -121,7 +121,7 @@ class ChronoFlex:
             cursor="hand2", command=lambda: self._switch_mode("random"))
         self.random_btn.pack(side="left")
 
-    def _build_config_card(self):
+    def _build_config_card(self) -> None:
         config_card = tk.Frame(self.root, bg=self.CARD)
         config_card.pack(fill="x", padx=30, pady=6)
         self.precise_panel = tk.Frame(config_card, bg=self.CARD)
@@ -130,13 +130,13 @@ class ChronoFlex:
         self._build_random_panel(self.random_panel)
         self.precise_panel.pack(fill="x", padx=20, pady=20)
 
-    def _build_footer(self):
+    def _build_footer(self) -> None:
         tk.Label(self.root,
                  text="Press Start to begin  •  Alarm will sound when finished",
                  font=("Segoe UI", 9), bg=self.BG, fg=self.SUBTLE
                  ).pack(side="bottom", pady=10)
 
-    def _build_controls(self):
+    def _build_controls(self) -> None:
         controls = tk.Frame(self.root, bg=self.BG)
         controls.pack(side="bottom", pady=10)
         self.start_btn = tk.Button(
@@ -155,7 +155,7 @@ class ChronoFlex:
             cursor="hand2", state="disabled", command=self.reset_timer)
         self.reset_btn.pack(side="left", padx=6)
 
-    def _build_display_card(self):
+    def _build_display_card(self) -> None:
         display_card = tk.Frame(self.root, bg=self.CARD)
         display_card.pack(fill="both", expand=True, padx=30, pady=10)
         canvas_wrap = tk.Frame(display_card, bg=self.CARD)
@@ -170,7 +170,7 @@ class ChronoFlex:
                                      fg=self.MUTED)
         self.status_label.pack(pady=(0, 20))
 
-    def _build_precise_panel(self, parent):
+    def _build_precise_panel(self, parent: tk.Frame) -> None:
         tk.Label(parent, text="Set Duration",
                  font=("Segoe UI Semibold", 12),
                  bg=parent["bg"], fg=self.TEXT).pack(anchor="w", pady=(0, 12))
@@ -203,7 +203,7 @@ class ChronoFlex:
                  font=("Segoe UI", 9), bg=parent["bg"],
                  fg=self.SUBTLE).pack(anchor="w", pady=(12, 0))
 
-    def _build_random_panel(self, parent):
+    def _build_random_panel(self, parent: tk.Frame) -> None:
         tk.Label(parent, text="Random Range  (1–60 minutes)",
                  font=("Segoe UI Semibold", 12),
                  bg=parent["bg"], fg=self.TEXT).pack(anchor="w", pady=(0, 12))
@@ -254,7 +254,7 @@ class ChronoFlex:
     # =====================================================================
     # Helpers
     # =====================================================================
-    def _sanitize_int(self, widget):
+    def _sanitize_int(self, widget: tk.Entry) -> None:
         val = widget.get().strip()
         try:
             int(val)
@@ -262,7 +262,7 @@ class ChronoFlex:
             widget.delete(0, "end")
             widget.insert(0, "0")
 
-    def _format_time(self, seconds):
+    def _format_time(self, seconds: int | float) -> str:
         seconds = int(seconds)
         d = seconds // 86400
         h = (seconds % 86400) // 3600
@@ -274,7 +274,7 @@ class ChronoFlex:
             return f"{h:02d}:{m:02d}:{s:02d}"
         return f"{m:02d}:{s:02d}"
 
-    def _get_precise_seconds(self):
+    def _get_precise_seconds(self) -> int:
         total = 0
         for key, entry in self.precise_entries.items():
             raw = entry.get().strip()
@@ -323,7 +323,7 @@ class ChronoFlex:
         chosen = random.randint(lo, hi)
         return chosen * 60, f"Random pick: {chosen} minute{'s' if chosen != 1 else ''} ({lo}–{hi})"
 
-    def _set_inputs_state(self, state):
+    def _set_inputs_state(self, state: str) -> None:
         for entry in self.precise_entries.values():
             entry.configure(state=state)
         self.rand_min_entry.configure(state=state)
@@ -332,7 +332,7 @@ class ChronoFlex:
     # =====================================================================
     # Mode switching
     # =====================================================================
-    def _switch_mode(self, mode):
+    def _switch_mode(self, mode: str) -> None:
         if self.running and not self.paused:
             return
         self.mode.set(mode)
@@ -351,7 +351,7 @@ class ChronoFlex:
     # =====================================================================
     # Timer control
     # =====================================================================
-    def start_timer(self):
+    def start_timer(self) -> None:
         if self.running and not self.paused:
             return
 
@@ -399,7 +399,7 @@ class ChronoFlex:
                                              daemon=True)
         self.timer_thread.start()
 
-    def _run_countdown(self):
+    def _run_countdown(self) -> None:
         try:
             while self.running:
                 if self.paused:
@@ -418,7 +418,7 @@ class ChronoFlex:
             logger.exception("Timer thread crashed")
             self.root.after(0, lambda: self.status_label.configure(text="Timer error"))
 
-    def pause_timer(self):
+    def pause_timer(self) -> None:
         if not self.running or self.paused:
             return
         self.paused = True
@@ -426,7 +426,7 @@ class ChronoFlex:
         self.pause_btn.configure(text="▶  Resume", command=self.resume_timer)
         self._draw_progress()
 
-    def resume_timer(self):
+    def resume_timer(self) -> None:
         if not self.paused:
             return
         self.paused = False
@@ -435,7 +435,7 @@ class ChronoFlex:
         self.pause_btn.configure(text="⏸  Pause", command=self.pause_timer)
         self._draw_progress()
 
-    def reset_timer(self):
+    def reset_timer(self) -> None:
         self.running = False
         self.paused = False
         self.alarm_playing = False
@@ -454,7 +454,7 @@ class ChronoFlex:
     # =====================================================================
     # Completion / alarm
     # =====================================================================
-    def _on_complete(self):
+    def _on_complete(self) -> None:
         self.running = False
         self.alarm_playing = True
         with self._lock:
@@ -477,7 +477,7 @@ class ChronoFlex:
         self.root.attributes("-topmost", True)
         self.root.after(self._TOPMOST_DURATION_MS, lambda: self.root.attributes("-topmost", False))
 
-    def _play_alarm(self):
+    def _play_alarm(self) -> None:
         # Short beeps, brief pause, repeat until dismissed
         try:
             while self.alarm_playing:
@@ -491,7 +491,7 @@ class ChronoFlex:
             logger.exception("Alarm thread crashed")
             self.root.after(0, lambda: self.status_label.configure(text="Alarm error"))
 
-    def _flash_alarm(self):
+    def _flash_alarm(self) -> None:
         if not self.alarm_playing:
             self._draw_progress()
             return
@@ -499,7 +499,7 @@ class ChronoFlex:
         self._draw_progress()
         self.root.after(self._FLASH_INTERVAL_MS, self._flash_alarm)
 
-    def dismiss_alarm(self):
+    def dismiss_alarm(self) -> None:
         self.alarm_playing = False
         self.reset_btn.configure(text="⏹  Reset")
         self.reset_timer()
@@ -507,7 +507,7 @@ class ChronoFlex:
     # =====================================================================
     # Drawing
     # =====================================================================
-    def _draw_progress(self):
+    def _draw_progress(self) -> None:
         self.canvas.delete("all")
         size = self.canvas_size
         center = size // 2
@@ -563,13 +563,13 @@ class ChronoFlex:
     # =====================================================================
     # Close handler
     # =====================================================================
-    def _on_close(self):
+    def _on_close(self) -> None:
         self.alarm_playing = False
         self.running = False
         self.root.destroy()
 
 
-def main():
+def main() -> None:
     root = tk.Tk()
     app = ChronoFlex(root)
 
