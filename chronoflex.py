@@ -160,9 +160,13 @@ class ChronoFlex:
         display_card = tk.Frame(self.root, bg=self.CARD)
         display_card.pack(fill="both", expand=True, padx=30, pady=10)
 
-        # Center the timer content vertically and horizontally
+        # Top spacer — pushes content down to center vertically
+        tk.Frame(display_card, bg=self.CARD).pack(
+            side="top", fill="both", expand=True)
+
+        # Centered content
         canvas_wrap = tk.Frame(display_card, bg=self.CARD)
-        canvas_wrap.place(relx=0.5, rely=0.5, anchor="center")
+        canvas_wrap.pack(side="top")
 
         self.canvas_size = 320
         self.canvas = tk.Canvas(canvas_wrap, width=self.canvas_size,
@@ -174,6 +178,10 @@ class ChronoFlex:
                                      font=("Segoe UI", 11), bg=self.CARD,
                                      fg=self.MUTED)
         self.status_label.pack(pady=(0, 10))
+
+        # Bottom spacer — pushes content up to center vertically
+        tk.Frame(display_card, bg=self.CARD).pack(
+            side="top", fill="both", expand=True)
 
     def _build_precise_panel(self, parent: tk.Frame) -> None:
         tk.Label(parent, text="Set Duration",
