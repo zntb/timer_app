@@ -274,7 +274,7 @@ class TestGetRandomSeconds:
 
     def test_message_contains_range(self, app):
         _, msg = app._get_random_seconds(3, 9)
-        assert "(3–9)" in msg
+        assert "(3-9)" in msg
 
 
 # ===========================================================================
