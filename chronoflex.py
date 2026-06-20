@@ -501,7 +501,6 @@ class ChronoFlex:
         self.root.after(self._FLASH_INTERVAL_MS, self._flash_alarm)
 
     def dismiss_alarm(self) -> None:
-        self.alarm_playing = False
         self.reset_btn.configure(text="⏹  Reset")
         self.reset_timer()
 
