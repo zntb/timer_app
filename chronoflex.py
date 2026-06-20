@@ -23,6 +23,10 @@ import winsound
 logger = logging.getLogger(__name__)
 
 
+class InvalidRangeError(ValueError):
+    """Raised when the random range inputs are invalid."""
+
+
 class ChronoFlex:
     # ---- Catppuccin-Mocha inspired palette ----
     BG          = "#1e1e2e"
@@ -269,21 +273,29 @@ class ChronoFlex:
             elif key == "s": total += v
         return total
 
-    def _get_random_seconds(self):
+    def _get_random_seconds(self) -> tuple[int, str]:
+        """Return (seconds, info_message) for a random pick in the range.
+
+        Raises
+        ------
+        InvalidRangeError
+            If the min/max entries are not valid integers.
+        """
         try:
             lo = int(self.rand_min_entry.get().strip() or "1")
             hi = int(self.rand_max_entry.get().strip() or "60")
         except ValueError:
-            return None, "Please enter valid integers for the random range."
+            raise InvalidRangeError("Please enter valid integers for the random range.")
         lo = max(1, min(60, lo))
         hi = max(1, min(60, hi))
         if lo > hi:
             lo, hi = hi, lo
-        self.rand_min_entry.delete(0, "end"); self.rand_min_entry.insert(0, str(lo))
-        self.rand_max_entry.delete(0, "end"); self.rand_max_entry.insert(0, str(hi))
+        self.rand_min_entry.delete(0, "end")
+        self.rand_min_entry.insert(0, str(lo))
+        self.rand_max_entry.delete(0, "end")
+        self.rand_max_entry.insert(0, str(hi))
         chosen = random.randint(lo, hi)
-        return chosen * 60, \
-            f"Random pick: {chosen} minute{'s' if chosen != 1 else ''} ({lo}–{hi})"
+        return chosen * 60, f"Random pick: {chosen} minute{'s' if chosen != 1 else ''} ({lo}–{hi})"
 
     def _set_inputs_state(self, state):
         for entry in self.precise_entries.values():
@@ -330,9 +342,10 @@ class ChronoFlex:
                 self.status_label.configure(
                     text=f"Timer set for {self._format_time(total)}")
             else:
-                total, msg = self._get_random_seconds()
-                if total is None:
-                    messagebox.showwarning("Invalid range", msg)
+                try:
+                    total, msg = self._get_random_seconds()
+                except InvalidRangeError as e:
+                    messagebox.showwarning("Invalid range", str(e))
                     return
                 self.total_seconds = total
                 self.status_label.configure(text=msg)
