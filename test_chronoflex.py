@@ -192,58 +192,89 @@ class TestGetPreciseSeconds:
 
 
 # ===========================================================================
-# _get_random_seconds
+# _clamp_random_range
 # ===========================================================================
 
-class TestGetRandomSeconds:
-    """Tests for ChronoFlex._get_random_seconds."""
+class TestClampRandomRange:
+    """Tests for ChronoFlex._clamp_random_range."""
 
-    def test_valid_range_returns_seconds_and_message(self, app):
+    def test_valid_range_returns_tuple(self, app):
         app.rand_min_entry.delete(0, "end")
         app.rand_min_entry.insert(0, "5")
         app.rand_max_entry.delete(0, "end")
         app.rand_max_entry.insert(0, "10")
-        total, msg = app._get_random_seconds()
-        assert isinstance(total, int)
-        assert total >= 5 * 60
-        assert total <= 10 * 60
-        assert "Random pick" in msg
+        lo, hi = app._clamp_random_range()
+        assert lo == 5
+        assert hi == 10
 
-    def test_invalid_min_raises_error(self, app):
+    def test_updates_widgets_to_clamped_values(self, app):
         app.rand_min_entry.delete(0, "end")
-        app.rand_min_entry.insert(0, "abc")
-        with pytest.raises(InvalidRangeError):
-            app._get_random_seconds()
-
-    def test_invalid_max_raises_error(self, app):
+        app.rand_min_entry.insert(0, "0")
         app.rand_max_entry.delete(0, "end")
-        app.rand_max_entry.insert(0, "xyz")
-        with pytest.raises(InvalidRangeError):
-            app._get_random_seconds()
+        app.rand_max_entry.insert(0, "100")
+        app._clamp_random_range()
+        assert app.rand_min_entry.get() == "1"
+        assert app.rand_max_entry.get() == "60"
 
     def test_min_greater_than_max_swapped(self, app):
         app.rand_min_entry.delete(0, "end")
         app.rand_min_entry.insert(0, "30")
         app.rand_max_entry.delete(0, "end")
         app.rand_max_entry.insert(0, "5")
-        total, _ = app._get_random_seconds()
-        assert 5 * 60 <= total <= 30 * 60
+        lo, hi = app._clamp_random_range()
+        assert lo == 5
+        assert hi == 30
 
-    def test_values_clamped_to_1_60(self, app):
+    def test_invalid_min_raises_error(self, app):
         app.rand_min_entry.delete(0, "end")
-        app.rand_min_entry.insert(0, "0")
+        app.rand_min_entry.insert(0, "abc")
+        with pytest.raises(InvalidRangeError):
+            app._clamp_random_range()
+
+    def test_invalid_max_raises_error(self, app):
         app.rand_max_entry.delete(0, "end")
-        app.rand_max_entry.insert(0, "100")
-        total, _ = app._get_random_seconds()
-        assert 1 * 60 <= total <= 60 * 60
+        app.rand_max_entry.insert(0, "xyz")
+        with pytest.raises(InvalidRangeError):
+            app._clamp_random_range()
 
     def test_empty_entries_use_defaults(self, app):
         app.rand_min_entry.delete(0, "end")
         app.rand_min_entry.insert(0, "")
         app.rand_max_entry.delete(0, "end")
         app.rand_max_entry.insert(0, "")
-        total, _ = app._get_random_seconds()
-        assert 1 * 60 <= total <= 60 * 60
+        lo, hi = app._clamp_random_range()
+        assert lo >= 1
+        assert hi <= 60
+
+
+# ===========================================================================
+# _get_random_seconds
+# ===========================================================================
+
+class TestGetRandomSeconds:
+    """Tests for ChronoFlex._get_random_seconds (pure computation)."""
+
+    def test_returns_seconds_and_message(self, app):
+        total, msg = app._get_random_seconds(5, 10)
+        assert isinstance(total, int)
+        assert total >= 5 * 60
+        assert total <= 10 * 60
+        assert "Random pick" in msg
+
+    def test_single_value_range(self, app):
+        total, msg = app._get_random_seconds(7, 7)
+        assert total == 7 * 60
+        assert "7 minutes" in msg
+
+    def test_singular_minute(self, app):
+        total, msg = app._get_random_seconds(1, 1)
+        assert total == 60
+        assert "1 minute" in msg
+        assert "minutes" not in msg
+
+    def test_message_contains_range(self, app):
+        _, msg = app._get_random_seconds(3, 9)
+        assert "(3–9)" in msg
 
 
 # ===========================================================================

@@ -292,8 +292,10 @@ class ChronoFlex:
             elif key == "s": total += v
         return total
 
-    def _get_random_seconds(self) -> tuple[int, str]:
-        """Return (seconds, info_message) for a random pick in the range.
+    def _clamp_random_range(self) -> tuple[int, int]:
+        """Clamp and normalize the random range entries, returning (lo, hi) in minutes.
+
+        Updates the entry widgets to reflect the clamped values.
 
         Raises
         ------
@@ -313,6 +315,13 @@ class ChronoFlex:
         self.rand_min_entry.insert(0, str(lo))
         self.rand_max_entry.delete(0, "end")
         self.rand_max_entry.insert(0, str(hi))
+        return lo, hi
+
+    def _get_random_seconds(self, lo: int, hi: int) -> tuple[int, str]:
+        """Return (seconds, info_message) for a random pick in ``[lo, hi]`` minutes.
+
+        This is a pure computation — it does NOT modify any UI widgets.
+        """
         chosen = random.randint(lo, hi)
         return chosen * 60, f"Random pick: {chosen} minute{'s' if chosen != 1 else ''} ({lo}–{hi})"
 
@@ -362,10 +371,11 @@ class ChronoFlex:
                     text=f"Timer set for {self._format_time(total)}")
             else:
                 try:
-                    total, msg = self._get_random_seconds()
+                    lo, hi = self._clamp_random_range()
                 except InvalidRangeError as e:
                     messagebox.showwarning("Invalid range", str(e))
                     return
+                total, msg = self._get_random_seconds(lo, hi)
                 self.total_seconds = total
                 self.status_label.configure(text=msg)
 
