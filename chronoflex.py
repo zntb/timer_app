@@ -26,9 +26,10 @@ import tkinter as tk
 from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
-import winsound
+if TYPE_CHECKING:
+    import winsound
 
 logger = logging.getLogger(__name__)
 
@@ -77,14 +78,16 @@ def _save_history(history: list[dict]) -> None:
 def _send_toast(title: str, message: str) -> None:
     """Send a Windows toast notification if windows-toasts is available."""
     try:
-        from windows_toasts import Toast, WindowsToaster
+        from windows_toasts import Toast, WindowsToaster  # type: ignore[import-not-found]
+    except ImportError:
+        logger.debug("windows-toasts not installed; toast notification skipped")
+        return
 
+    try:
         toaster = WindowsToaster("ChronoFlex")
         toast = Toast()
         toast.text_fields = [title, message]
         toaster.show_toast(toast)
-    except ImportError:
-        logger.debug("windows-toasts not installed; toast notification skipped")
     except Exception:
         logger.exception("Failed to send toast notification")
 
@@ -176,6 +179,19 @@ THEMES = {
 
 
 class ChronoFlex:
+    BG: str
+    CARD: str
+    CARD_ALT: str
+    INPUT_BG: str
+    ACCENT: str
+    ACCENT_HOV: str
+    TEXT: str
+    MUTED: str
+    SUBTLE: str
+    DANGER: str
+    SUCCESS: str
+    WARNING: str
+
     # ---- Timing / alarm constants ----
     _TICK_INTERVAL: float = 0.1
     _ROUNDING_OFFSET: float = 0.999
@@ -538,8 +554,13 @@ class ChronoFlex:
     def _sanitize_int(self, widget: tk.Entry) -> None:
         val = widget.get().strip()
         try:
-            int(val)
+            value = int(val)
         except ValueError:
+            widget.delete(0, "end")
+            widget.insert(0, "0")
+            return
+
+        if value < 0:
             widget.delete(0, "end")
             widget.insert(0, "0")
 
